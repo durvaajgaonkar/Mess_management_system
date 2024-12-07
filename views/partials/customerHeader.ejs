@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MealMate</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/styles.css">    
+    <link rel="icon" href="/icons/favicon.png" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <header class="d-flex justify-content-between align-items-center py-3">
+            <div class="d-flex align-items-center">
+                <img src="/icons/original.png" alt="MealMate Logo" style="height: 70px;">
+            </div>
+
+            <ul class="nav nav-pills justify-content-center ms-3">
+                <li><a href="/customer/home" class="nav-link px-2 link-secondary">View Sellers</a></li>
+                <li><a href="/customer/orders" class="nav-link px-2">Your Orders</a></li>
+                <li><a href="/customer/mess" class="nav-link px-2">Monthly Mess</a></li>
+                <li><a href="/customer/refer" class="nav-link px-2">Refer a Friend</a></li>
+            </ul>
+
+            <div class="d-flex align-items-center ms-auto">
+                <% if (customerName) { %>
+                    <div class="text-secondary me-2">Welcome, <%= customerName %>!</div>
+                    <div class="cart-icon">
+                        <a href="/cart">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-bag-check-fill" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M10.5 3.5a2.5 2.5 0 0 0-5 0V4h5zm1 0V4H15v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4h3.5v-.5a3.5 3.5 0 1 1 7 0m-.646 5.354a.5.5 0 0 0-.708-.708L7.5 10.793 6.354 9.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0z"/>
+                            </svg>
+                            <span class="cart-count"><%= cartCount %></span>
+                        </a>
+                    </div>
+                    <form class="noform" action="/logout/customer" method="POST">
+                        <button class="btn btn-primary logout text-decoration-none" style="padding: 5px; margin: 0; margin-top:10px; margin-left: 15px;" type="submit">Logout</button>
+                    </form>
+                <% } %>
+            </div>
+        </header>
+    </div>
+</body>
+</html>

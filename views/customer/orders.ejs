@@ -1,0 +1,31 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/styles.css">
+<%- include('../partials/customerHeader', { customerName: customerName }) %>
+
+<header>
+  <h2>Hello, <%= customerName %>! Here are your orders</h2>
+</header>
+
+<% if (orders.length > 0) { %>
+  <div class="container px-4 py-5">
+    <div class="row g-4">
+      <% orders.forEach(order => { %>
+        <div class="col-12 col-md-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title"><%= order.meal_name %></h5> <!-- Meal name as title -->
+              <p class="card-text"><strong>Seller:</strong> <%= order.seller_name %></p> <!-- Seller name -->
+              <p class="card-text"><strong>Booking Date:</strong> <%= new Date(order.order_date).toLocaleDateString() %></p> <!-- Booking Date -->
+              <p class="card-text"><strong>Price:</strong> ₹<%= order.order_amount %></p> <!-- Price -->
+              <p class="card-text"><strong>Status:</strong> <%= order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1) %></p> <!-- Order Status -->
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+<% } else { %>
+  <p style="font-family: 'Arial', sans-serif; text-align: center; font-size: 1.5rem; font-weight: bold; letter-spacing: 1px;">No orders found.</p>
+<% } %>
+
+<%- include('../partials/footer') %>

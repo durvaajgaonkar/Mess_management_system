@@ -1,0 +1,215 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/styles.css">
+<%- include('../partials/customerHeader', { customerName: customerName }) %>
+
+<body>
+  <h2>Order Review for <%= meal.name %></h2>
+  <div class="meal-container container px-4 py-5">
+    <div class="meal-card col-12 col-md-4" data-seller-id="<%= meal.seller_id %>" data-seller-address="<%= meal.seller_address %>">
+      <div class="meal-content card flex-fill">
+        <div class="img-box">
+          <% if (meal.image_url) { %>
+            <img class="card-img-top meal-img fixed-size" src="<%= meal.image_url %>" alt="<%= meal.name %>">
+          <% } %>
+        </div>
+        <div class="card-body">
+          <h2 class="meal-name"><%= meal.name %></h2>
+          <p><strong>Price:</strong> ₹<span class="meal-price"><%= meal.price %></span></p>
+          <p><strong>Contents:</strong> <%= meal.contents %></p>
+          <p><strong>Preparation Time:</strong> <%= meal.prep_time %></p>
+          <p><strong>Seller:</strong> <%= meal.seller_name %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mb-4"> 
+    <div class="location-info text-center">
+      <p class="fw-bold">Choose Delivery Location:</p>
+      
+      <div class="form-check form-check-inline">
+        <input type="checkbox" class="form-check-input" id="use-current-location" onchange="toggleAddressInput()">
+        <label class="form-check-label" for="use-current-location">Use my current location: <%= customerLocation %></label>
+      </div>
+      
+      <div id="new-address-container" class="mt-3">
+        <p>Or enter a new delivery address:</p>
+        <input type="text" class="form-control" id="delivery-address" placeholder="Enter your delivery address">
+      </div>
+    </div>
+
+    <div class="text-center"> 
+      <button id="pay-button" class="btn btn-primary" style="margin-top: 20px;" disabled>Pay</button>
+    </div>
+  </div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    
+    async function calculateTotalAmount() {
+  let total = 0;
+
+  document.querySelectorAll('.meal-price').forEach(function (priceElement) {
+    const price = parseFloat(priceElement.innerText.replace('₹', '').trim());
+    total += price;
+  });
+
+  const useCurrentLocation = document.getElementById('use-current-location').checked;
+  const deliveryAddress = useCurrentLocation ? "<%= customerLocation %>" : document.getElementById('delivery-address').value.trim();
+
+  if (deliveryAddress) {
+    const sellerAddresses = Array.from(document.querySelectorAll('.meal-card')).map(mealCard => mealCard.getAttribute('data-seller-address'));
+
+    const response = await fetch('/calculate-distance', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sellerAddresses: sellerAddresses,
+        deliveryAddress: deliveryAddress
+      })
+    });
+
+    const data = await response.json();
+    console.log('Distance Calculation Response:', data);
+
+    if (data.error) {
+      console.error('Error calculating distance:', data.error);
+      return total;
+    }
+
+    const deliveryCharge = data.totalDeliveryCharge || 0;
+    const finalTotal = total + deliveryCharge;
+    console.log("Final total with delivery charges: ₹" + finalTotal);
+    return finalTotal;
+  } else {
+    console.error('Delivery address is missing.');
+    return total;
+  }
+}
+
+document.getElementById('pay-button').onclick = async function (e) {
+  e.preventDefault();
+
+  // Calculate total amount
+  const totalAmount = await calculateTotalAmount(); // Get total amount
+  console.log("Total Amount in Rupees:", totalAmount); // Log the total amount in rupees
+
+  if (!totalAmount || isNaN(totalAmount) || totalAmount <= 0) {
+    console.error('Invalid total amount:', totalAmount);
+    alert('Error calculating the total amount. Please try again.');
+    return;
+  }
+
+  const totalAmountInPaise = totalAmount * 100; // Convert to paise
+  console.log("Total Amount in Paise:", totalAmountInPaise); // Log the amount in paise
+
+  const deliveryAddress = document.getElementById('use-current-location').checked 
+    ? "<%= customerLocation %>" 
+    : document.getElementById('delivery-address').value;
+
+  if (!deliveryAddress) {
+    alert('Please select or enter a delivery location.');
+    return;
+  }
+
+  // Gather cart items to send to the server
+  const cartItems = [];
+  document.querySelectorAll('.meal-card').forEach(card => {
+    const mealName = card.querySelector('.meal-name').innerText;
+    const sellerId = card.getAttribute('data-seller-id');
+    const price = parseFloat(card.querySelector('.meal-price').innerText.replace('₹', '').trim());
+
+    cartItems.push({
+      mealName: mealName,
+      sellerId: sellerId,
+      orderAmount: price
+    });
+  });
+
+  try {
+    const response = await fetch('/create-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: totalAmountInPaise, // Pass the amount in paise
+        address: deliveryAddress,
+        cart: cartItems
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('Error from server:', data.error);
+      alert('Failed to create order. Please try again.');
+      return;
+    }
+
+    console.log('Razorpay Order Data:', data); // Log Razorpay order data
+
+    const options = {
+      "key": "<%= process.env.RAZORPAY_KEY_ID %>",
+      "amount": data.amount, // Amount in paise from server
+      "order_id": data.id, // Razorpay order ID from server
+      "handler": function (response) {
+        fetch('/payment-confirmation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            paymentId: response.razorpay_payment_id,
+            orderId: response.razorpay_order_id
+          })
+        })
+        .then(() => window.location.href = '/payment-confirmation');
+      }
+    };
+
+    const rzp1 = new Razorpay(options);
+    rzp1.open();
+
+  } catch (error) {
+    console.error('Error creating order:', error);
+    alert('Error processing the payment. Please try again.');
+  }
+};
+function toggleAddressInput() {
+      const useCurrentLocation = document.getElementById('use-current-location');
+      const newAddressContainer = document.getElementById('new-address-container');
+      const payButton = document.getElementById('pay-button');
+
+      if (useCurrentLocation.checked) {
+        newAddressContainer.style.display = 'none';
+        payButton.disabled = false;
+        document.getElementById('location-error').style.display = 'none';
+      } else {
+        newAddressContainer.style.display = 'block';
+        validateLocation();
+      }
+}
+
+function validateLocation() {
+      const newAddress = document.getElementById('delivery-address').value.trim();
+      const payButton = document.getElementById('pay-button');
+      const locationError = document.getElementById('location-error');
+
+      if (newAddress) {
+        payButton.disabled = false;
+        locationError.style.display = 'none';
+      } else {
+        payButton.disabled = true;
+      }
+}
+
+document.getElementById('delivery-address').addEventListener('input', validateLocation);
+
+toggleAddressInput();
+</script>
+</body>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,135 @@
+:root {
+  --bs-primary: rgb(255, 98, 0) !important; /* New primary color */
+}
+
+button.btn-primary {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+a {
+  color: var(--bs-primary) !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: var(--bs-primary) !important;
+}
+
+.progress-bar {
+  background-color: var(--bs-primary) !important;
+}
+html {
+  --bs-primary: rgb(255, 98, 0) ; /* Replace with your desired color */
+}
+
+
+h1, h2 {
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 10px;
+}
+
+h1 {  
+  color: #e10303df; 
+  font-size: 2.5rem; 
+  font-weight: bold;
+  letter-spacing: 1px; 
+  text-transform: uppercase; 
+  border-bottom: 2px solid rgb(255, 98, 0) ;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #e10303df; 
+  text-transform: capitalize;
+  margin-top: 30px;
+}
+
+.h3{
+  color: rgb(255, 84, 32) !important; 
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
+  }
+}
+
+.rating-stars {
+  display: flex;
+  direction: row;
+}
+
+.star {
+  font-size: 2em;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.star.selected {
+  color: gold;
+}
+
+.meal-card.disabled {
+  opacity: 0.5;
+}
+
+.cart-icon {
+    position: relative; 
+}
+.cart-count {
+    position: absolute; 
+    top: -10px; 
+    right: -13px; 
+    font-size: 15px;
+    font-weight: bolder;
+    padding: 2px 4px;
+    border-radius: 50%;
+    text-align: center;
+}
+
+.fixed-size {
+    width: 100%; 
+    height: 300px;
+    object-fit: cover; 
+}
+
+.meal-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .button-container {
+    display: flex;
+    justify-content: space-between; 
+    padding: 0.5rem; 
+    gap: 1rem;
+  }
+
+  @media (max-width: 992px) and (min-width: 768px) {
+    .button-container {
+      flex-direction: row; 
+      justify-content: center; 
+      gap: 0.4rem;
+    }
+    .button-container form button {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.5rem; 
+    }
+  }
+
+  @media (max-width: 1200px) and (min-width: 992px) {
+    .button-container {
+    display: flex;
+    justify-content: center; 
+    padding: 0.5rem; 
+    gap: 1rem;
+  }
+  }
